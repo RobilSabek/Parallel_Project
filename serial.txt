@@ -1,0 +1,15 @@
+#include <stdio.h>
+#include "yolo.h"
+
+int main() {
+    ImageList images = load_images("path/to/dataset");
+    YOLO yolo = initialize_yolo();
+
+    for (int i = 0; i < images.length; i++) {
+        DetectionList detections = yolo_detect(yolo, images[i]);
+        // Process detections or save them to file
+    }
+
+    cleanup_yolo(yolo);
+    return 0;
+}

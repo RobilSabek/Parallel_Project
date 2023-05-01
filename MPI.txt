@@ -1,0 +1,27 @@
+#include <stdio.h>
+#include <mpi.h>
+#include "yolo.h"
+
+int main(int argc, char *argv[]) {
+    int rank, size;
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+    if (rank == 0) {
+        ImageList images = load_images("path/to/dataset");
+        distribute_images(images, size);
+    }
+
+    YOLO yolo = initialize_yolo();
+    ImageList local_images = receive_images(rank, size);
+
+    for (int i = 0; i < local_images.length; i++) {
+        DetectionList detections = yolo_detect(yolo, local_images[i]);
+        // Process detections or save them to file
+    }
+
+    cleanup_yolo(yolo);
+    MPI_Finalize();
+    return 0;
+}

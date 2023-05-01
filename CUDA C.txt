@@ -1,0 +1,34 @@
+#include <stdio.h>
+#include <cuda_runtime.h>
+#include "yolo.h"
+#include "yolo_kernel.cuh"
+
+int main() {
+    ImageList images = load_images("path/to/dataset");
+    YOLO yolo = initialize_yolo();
+
+    // Allocate memory on the GPU
+    allocate_gpu_memory(images);
+
+    for (int i = 0; i < images.length; i++) {
+        // Copy image data to the GPU
+        cudaMemcpyToSymbol(gpu_image, images[i], sizeof(Image));
+
+        // Launch the CUDA kernel
+        int num_blocks = 256;
+        int num_threads = 512;
+        yolo_kernel<<<num_blocks, num_threads>>>(yolo);
+
+        // Copy the results back from the GPU
+        DetectionList detections;
+        cudaMemcpyFromSymbol(detections, gpu_detections, sizeof(DetectionList));
+
+        // Process detections or save them to file
+    }
+
+    // Free GPU memory
+    free_gpu_memory();
+
+    cleanup_yolo(yolo);
+    return 0;
+}
